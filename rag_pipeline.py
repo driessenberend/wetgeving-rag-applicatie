@@ -10,7 +10,7 @@ from typing import List, Dict, Tuple, Optional
 logger = logging.getLogger(__name__)
 
 EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
-LLM_MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
+LLM_MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
 # Eenvoudige module-level cache zodat het model niet twee keer geladen wordt
 _sentence_transformer_cache: dict = {}
@@ -91,7 +91,7 @@ class VectorStore:
 class LLMClient:
     def __init__(self, token: str):
         from huggingface_hub import InferenceClient
-        self.client = InferenceClient(model=LLM_MODEL, token=token)
+        self.client = InferenceClient(token=token)
 
     def genereer(
         self,
@@ -104,6 +104,7 @@ class LLMClient:
         prompt = self._bouw_prompt(vraag, context)
         try:
             response = self.client.chat_completion(
+                model=LLM_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
                 temperature=temperatuur,
