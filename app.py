@@ -333,19 +333,30 @@ elif pagina == "Evaluatie":
             })
         df = pd.DataFrame(rows)
 
-        score_cols = ["Correctheid", "Trouw", "Volledigheid", "Helderheid", "Relevantie"]
-        styled = df.style.background_gradient(
-            subset=[c for c in score_cols if c in df.columns],
-            cmap="RdYlGn",
-            vmin=0,
-            vmax=5,
-        ).format({
-            "Correctheid": lambda v: f"{v:.0%}" if v is not None else "N/B",
-            "Trouw": lambda v: str(v) if v is not None else "N/B",
-            "Volledigheid": lambda v: str(v) if v is not None else "N/B",
-            "Helderheid": lambda v: str(v) if v is not None else "N/B",
-            "Relevantie": lambda v: str(v) if v is not None else "N/B",
-        })
+        def _color_score(val, vmax=5):
+            """Return a CSS background-color based on score value."""
+            if val is None:
+                return "background-color: #f0f0f0; color: #999"
+            ratio = float(val) / vmax
+            if ratio >= 0.7:
+                return "background-color: #c6efce; color: #276221"
+            elif ratio >= 0.4:
+                return "background-color: #ffeb9c; color: #9c6500"
+            else:
+                return "background-color: #ffc7ce; color: #9c0006"
+
+        styled = (
+            df.style
+            .map(_color_score, subset=["Trouw", "Volledigheid", "Helderheid", "Relevantie"], vmax=5)
+            .map(_color_score, subset=["Correctheid"], vmax=1)
+            .format({
+                "Correctheid": lambda v: f"{v:.0%}" if v is not None else "N/B",
+                "Trouw": lambda v: str(v) if v is not None else "N/B",
+                "Volledigheid": lambda v: str(v) if v is not None else "N/B",
+                "Helderheid": lambda v: str(v) if v is not None else "N/B",
+                "Relevantie": lambda v: str(v) if v is not None else "N/B",
+            })
+        )
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
         st.markdown("---")
