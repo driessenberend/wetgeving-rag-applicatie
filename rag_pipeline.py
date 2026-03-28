@@ -19,13 +19,8 @@ logger = logging.getLogger(__name__)
 # Multilinguaal model, goed voor Nederlands, ~50MB
 EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
 
-# Gratis HuggingFace modellen die goed werken met Nederlands
-BESCHIKBARE_MODELLEN = {
-    "Mistral 7B (aanbevolen)": "mistralai/Mistral-7B-Instruct-v0.3",
-    "Zephyr 7B": "HuggingFaceH4/zephyr-7b-beta",
-    "Llama 3 8B": "meta-llama/Meta-Llama-3-8B-Instruct",
-    "Phi-3 Mini": "microsoft/Phi-3-mini-4k-instruct",
-}
+# Vast model — goed voor Nederlands, betrouwbaar op HF gratis tier
+LLM_MODEL = "HuggingFaceH4/zephyr-7b-beta"
 
 INDEX_BESTAND = "data/faiss_index.bin"
 CHUNKS_BESTAND = "data/chunks.pkl"
@@ -117,9 +112,9 @@ class VectorStore:
 class LLMClient:
     """Client voor HuggingFace Inference API."""
 
-    def __init__(self, model: str, token: str):
-        self.model = model
-        self.client = InferenceClient(model=model, token=token)
+    def __init__(self, token: str):
+        # provider="hf-inference" voorkomt doorrouting naar externe providers (bijv. novita)
+        self.client = InferenceClient(model=LLM_MODEL, token=token, provider="hf-inference")
 
     def genereer(
         self,
@@ -128,36 +123,19 @@ class LLMClient:
         max_tokens: int = 512,
         temperatuur: float = 0.1,
     ) -> str:
-        """
-        Genereer een antwoord op basis van de vraag en opgehaalde context.
-        """
         context = self._bouw_context(context_chunks)
         prompt = self._bouw_prompt(vraag, context)
 
         try:
-            # Gebruik chat completion API (werkt voor de meeste instructie-modellen)
             response = self.client.chat_completion(
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=max_tokens,
                 temperature=temperatuur,
             )
             return response.choices[0].message.content.strip()
-        except Exception:
-            # Fallback naar text generation
-            try:
-                response = self.client.text_generation(
-                    prompt,
-                    max_new_tokens=max_tokens,
-                    temperature=temperatuur,
-                    do_sample=temperatuur > 0,
-                )
-                # Verwijder de originele prompt uit het antwoord
-                if response.startswith(prompt):
-                    response = response[len(prompt):].strip()
-                return response
-            except Exception as e:
-                logger.error(f"LLM generatie mislukt: {e}")
-                return f"Fout bij genereren antwoord: {e}"
+        except Exception as e:
+            logger.error(f"LLM generatie mislukt: {e}")
+            return f"Fout bij genereren antwoord: {e}"
 
     def _bouw_context(self, chunks: List[Tuple[Dict, float]]) -> str:
         """Bouw een gestructureerde context op uit de gevonden chunks."""
@@ -196,7 +174,6 @@ class RAGPipeline:
     def __init__(
         self,
         hf_token: str = "",
-        model_naam: str = "mistralai/Mistral-7B-Instruct-v0.3",
         data_map: str = "data",
     ):
         self.data_map = data_map
@@ -205,12 +182,12 @@ class RAGPipeline:
         self.llm: Optional[LLMClient] = None
 
         if hf_token:
-            self.stel_llm_in(model_naam, hf_token)
+            self.stel_llm_in(hf_token)
 
-    def stel_llm_in(self, model_naam: str, hf_token: str) -> None:
+    def stel_llm_in(self, hf_token: str) -> None:
         """Initialiseer de LLM client."""
-        self.llm = LLMClient(model=model_naam, token=hf_token)
-        logger.info(f"LLM ingesteld: {model_naam}")
+        self.llm = LLMClient(token=hf_token)
+        logger.info(f"LLM ingesteld: {LLM_MODEL}")
 
     def index_opbouwen(
         self,
