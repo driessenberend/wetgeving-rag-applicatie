@@ -1,0 +1,122 @@
+[
+  {
+    "id": "tc_001",
+    "categorie": "Grondwet",
+    "vraag": "Wat zegt de Grondwet over gelijke behandeling en discriminatie?",
+    "verwacht_antwoord": "Allen die zich in Nederland bevinden, worden in gelijke gevallen gelijk behandeld. Discriminatie wegens godsdienst, levensovertuiging, politieke gezindheid, ras, geslacht of op welke grond dan ook, is niet toegestaan.",
+    "benodigde_wetten": ["BWBR0001840"],
+    "verwacht_artikel": "Artikel 1"
+  },
+  {
+    "id": "tc_002",
+    "categorie": "Grondwet",
+    "vraag": "Welk recht geeft de Grondwet aan Nederlanders met betrekking tot het verlaten van het land?",
+    "verwacht_antwoord": "Iedere Nederlander heeft het recht het land te verlaten, behoudens in de gevallen bij de wet bepaald.",
+    "benodigde_wetten": ["BWBR0001840"],
+    "verwacht_artikel": "Artikel 2"
+  },
+  {
+    "id": "tc_003",
+    "categorie": "Grondwet",
+    "vraag": "Wat zegt de Grondwet over het recht op eerbiediging van de persoonlijke levenssfeer?",
+    "verwacht_antwoord": "Ieder heeft, behoudens bij of krachtens de wet te stellen beperkingen, recht op eerbiediging van zijn persoonlijke levenssfeer.",
+    "benodigde_wetten": ["BWBR0001840"],
+    "verwacht_artikel": "Artikel 10"
+  },
+  {
+    "id": "tc_004",
+    "categorie": "Arbeidsrecht",
+    "vraag": "Wat is de wettelijke opzegtermijn voor een werknemer bij een arbeidsovereenkomst?",
+    "verwacht_antwoord": "De termijn van opzegging voor de werknemer bedraagt één maand.",
+    "benodigde_wetten": ["BWBR0005290"],
+    "verwacht_artikel": "Artikel 672"
+  },
+  {
+    "id": "tc_005",
+    "categorie": "Arbeidsrecht",
+    "vraag": "Wat is de maximale proeftijd die wettelijk is toegestaan bij een arbeidsovereenkomst voor onbepaalde tijd?",
+    "verwacht_antwoord": "Bij het aangaan van een arbeidsovereenkomst voor onbepaalde tijd kan een proeftijd worden overeengekomen van ten hoogste twee maanden.",
+    "benodigde_wetten": ["BWBR0005290"],
+    "verwacht_artikel": "Artikel 652"
+  },
+  {
+    "id": "tc_006",
+    "categorie": "Arbeidsrecht",
+    "vraag": "Wanneer heeft een werknemer recht op transitievergoeding bij ontslag?",
+    "verwacht_antwoord": "De werkgever is aan de werknemer een transitievergoeding verschuldigd indien de arbeidsovereenkomst ten minste twee jaar heeft geduurd en de arbeidsovereenkomst door de werkgever is opgezegd of op verzoek van de werkgever is ontbonden.",
+    "benodigde_wetten": ["BWBR0005290"],
+    "verwacht_artikel": "Artikel 673"
+  },
+  {
+    "id": "tc_007",
+    "categorie": "Strafrecht",
+    "vraag": "Wat is de maximale gevangenisstraf voor doodslag volgens het Wetboek van Strafrecht?",
+    "verwacht_antwoord": "Hij die opzettelijk een ander van het leven berooft, wordt als schuldig aan doodslag gestraft met gevangenisstraf van ten hoogste vijftien jaren of geldboete van de vijfde categorie.",
+    "benodigde_wetten": ["BWBR0001854"],
+    "verwacht_artikel": "Artikel 287"
+  },
+  {
+    "id": "tc_008",
+    "categorie": "Strafrecht",
+    "vraag": "Wat is de straf voor oplichting in het Wetboek van Strafrecht?",
+    "verwacht_antwoord": "Hij die, met het oogmerk om zich of een ander wederrechtelijk te bevoordelen, hetzij door het aannemen van een valse naam of van een valse hoedanigheid, hetzij door listige kunstgrepen, hetzij door een samenweefsel van verdichtsels, iemand beweegt tot de afgifte van enig goed, tot het verlenen van een dienst, tot het ter beschikking stellen van gegevens, tot het aangaan van een schuld of tot het tenietdoen van een inschuld, wordt als schuldig aan oplichting gestraft met gevangenisstraf van ten hoogste vier jaren of geldboete van de vijfde categorie.",
+    "benodigde_wetten": ["BWBR0001854"],
+    "verwacht_artikel": "Artikel 326"
+  },
+  {
+    "id": "tc_009",
+    "categorie": "Strafrecht",
+    "vraag": "Wat is de minimumleeftijd voor strafrechtelijke aansprakelijkheid in Nederland?",
+    "verwacht_antwoord": "Niet strafbaar is hij die een feit begaat dat hem wegens de gebrekkige ontwikkeling of ziekelijke stoornis van zijn geestvermogens niet kan worden toegerekend.",
+    "benodigde_wetten": ["BWBR0001854"],
+    "verwacht_artikel": "Artikel 39"
+  },
+  {
+    "id": "tc_010",
+    "categorie": "Bestuursrecht",
+    "vraag": "Binnen welke termijn moet een bestuursorgaan een beslissing nemen op een aanvraag volgens de Awb?",
+    "verwacht_antwoord": "Het bestuursorgaan beslist op de aanvraag binnen de bij wettelijk voorschrift bepaalde termijn of, bij het ontbreken van zulk een termijn, binnen een redelijke termijn na ontvangst van de aanvraag. De redelijke termijn is in ieder geval verstreken wanneer het bestuursorgaan binnen acht weken na ontvangst van de aanvraag geen besluit heeft genomen.",
+    "benodigde_wetten": ["BWBR0005537"],
+    "verwacht_artikel": "Artikel 4:13"
+  },
+  {
+    "id": "tc_011",
+    "categorie": "Bestuursrecht",
+    "vraag": "Wat zijn de vereisten voor een geldig besluit van een bestuursorgaan?",
+    "verwacht_antwoord": "Een besluit dient te berusten op een deugdelijke motivering.",
+    "benodigde_wetten": ["BWBR0005537"],
+    "verwacht_artikel": "Artikel 3:46"
+  },
+  {
+    "id": "tc_012",
+    "categorie": "Bestuursrecht",
+    "vraag": "Wat is de bezwaartermijn voor een belanghebbende bij een besluit van een bestuursorgaan?",
+    "verwacht_antwoord": "De termijn voor het indienen van een bezwaar- of beroepschrift bedraagt zes weken.",
+    "benodigde_wetten": ["BWBR0005537"],
+    "verwacht_artikel": "Artikel 6:7"
+  },
+  {
+    "id": "tc_013",
+    "categorie": "Minimumloon",
+    "vraag": "Voor welke werknemers geldt de Wet minimumloon en minimumvakantiebijslag?",
+    "verwacht_antwoord": "Deze wet is van toepassing op de werknemer in de zin van deze wet die de leeftijd van vijftien jaar heeft bereikt.",
+    "benodigde_wetten": ["BWBR0002638"],
+    "verwacht_artikel": "Artikel 2"
+  },
+  {
+    "id": "tc_014",
+    "categorie": "Minimumloon",
+    "vraag": "Wat is de minimumvakantiebijslag waarop een werknemer recht heeft?",
+    "verwacht_antwoord": "De werknemer heeft jegens de werkgever aanspraak op een vakantiebijslag van ten minste 8 procent van zijn loon.",
+    "benodigde_wetten": ["BWBR0002638"],
+    "verwacht_artikel": "Artikel 15"
+  },
+  {
+    "id": "tc_015",
+    "categorie": "Arbeidsrecht",
+    "vraag": "Wat is de wettelijke maximale arbeidsduur per week voor een werknemer?",
+    "verwacht_antwoord": "De werknemer verricht geen arbeid gedurende meer dan twaalf uren per dienst, en meer dan zestig uren per week.",
+    "benodigde_wetten": ["BWBR0010346"],
+    "verwacht_artikel": "Artikel 5:7"
+  }
+]
