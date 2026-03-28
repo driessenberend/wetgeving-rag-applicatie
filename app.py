@@ -123,9 +123,9 @@ if pagina == "Assistent":
     # Chat
     st.markdown("### Vragen stellen")
 
-    pipeline = laad_pipeline()
+    pipeline = st.session_state.pipeline
 
-    if pipeline.aantal_chunks == 0:
+    if pipeline is None or pipeline.aantal_chunks == 0:
         st.info("Laad eerst een of meer wetten hierboven.")
     else:
         vraag_input = st.chat_input("Stel uw vraag over de Nederlandse wetgeving...")

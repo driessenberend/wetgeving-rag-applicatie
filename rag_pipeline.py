@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple, Optional
 
 import numpy as np
 import faiss
+import streamlit as st
 from sentence_transformers import SentenceTransformer
 from huggingface_hub import InferenceClient
 
@@ -26,12 +27,18 @@ INDEX_BESTAND = "data/faiss_index.bin"
 CHUNKS_BESTAND = "data/chunks.pkl"
 
 
+@st.cache_resource
+def _laad_sentence_transformer(model_naam: str) -> SentenceTransformer:
+    """Laad het embedding model eenmalig en cache het over alle sessies."""
+    logger.info(f"Laden embedding model: {model_naam}")
+    return SentenceTransformer(model_naam)
+
+
 class EmbeddingModel:
     """Wrapper voor sentence-transformers embedding model."""
 
     def __init__(self, model_naam: str = EMBEDDING_MODEL):
-        logger.info(f"Laden embedding model: {model_naam}")
-        self.model = SentenceTransformer(model_naam)
+        self.model = _laad_sentence_transformer(model_naam)
         self.dimensie = self.model.get_sentence_embedding_dimension()
 
     def embed(self, teksten: List[str], batch_grootte: int = 32) -> np.ndarray:
