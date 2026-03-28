@@ -5,7 +5,6 @@ Streamlit RAG-applicatie voor Nederlandse wetgeving.
 import streamlit as st
 
 from scraper import WettenScraper, BEKENDE_WETTEN, plat_maken
-from rag_pipeline import RAGPipeline
 
 _HF_TOKEN = st.secrets.get("HF_TOKEN", "") if hasattr(st, "secrets") else ""
 
@@ -24,8 +23,9 @@ if "geladen_wetten" not in st.session_state:
     st.session_state.geladen_wetten = []
 
 
-def laad_pipeline() -> RAGPipeline:
+def laad_pipeline():
     if st.session_state.pipeline is None:
+        from rag_pipeline import RAGPipeline
         with st.spinner("Model laden..."):
             pipeline = RAGPipeline(hf_token=_HF_TOKEN, data_map="data")
             pipeline.laden()
