@@ -1,6 +1,5 @@
 """
 Streamlit RAG-applicatie voor Nederlandse wetgeving.
-Stel vragen over Nederlandse wetten via een gratis AI-assistent.
 """
 
 import streamlit as st
@@ -8,19 +7,15 @@ import streamlit as st
 from scraper import WettenScraper, BEKENDE_WETTEN, plat_maken
 from rag_pipeline import RAGPipeline
 
-# HF token via Streamlit secrets (voor Streamlit Cloud deployment)
-_DEFAULT_TOKEN = st.secrets.get("HF_TOKEN", "") if hasattr(st, "secrets") else ""
+_HF_TOKEN = st.secrets.get("HF_TOKEN", "") if hasattr(st, "secrets") else ""
 
 st.set_page_config(
-    page_title="Nederlandse Wetgeving RAG",
-    page_icon="⚖️",
+    page_title="Wetgeving Assistent",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ─────────────────────────────────────────────
-# Sessie-state initialisatie
-# ─────────────────────────────────────────────
 if "pipeline" not in st.session_state:
     st.session_state.pipeline = None
 if "chat_history" not in st.session_state:
@@ -29,136 +24,106 @@ if "geladen_wetten" not in st.session_state:
     st.session_state.geladen_wetten = []
 
 
-def laad_pipeline(hf_token: str) -> RAGPipeline:
+def laad_pipeline() -> RAGPipeline:
     if st.session_state.pipeline is None:
-        with st.spinner("Embedding model laden (eenmalig ~30 seconden)..."):
-            pipeline = RAGPipeline(hf_token=hf_token, data_map="data")
-            if pipeline.laden():
-                st.success(f"Bestaande index geladen ({pipeline.aantal_chunks} chunks)")
+        with st.spinner("Model laden..."):
+            pipeline = RAGPipeline(hf_token=_HF_TOKEN, data_map="data")
+            pipeline.laden()
             st.session_state.pipeline = pipeline
-    else:
-        if hf_token:
-            st.session_state.pipeline.stel_llm_in(hf_token)
     return st.session_state.pipeline
 
 
-# ─────────────────────────────────────────────
-# Sidebar
-# ─────────────────────────────────────────────
+# ─── Sidebar ───────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.title("⚖️ Wetgeving RAG")
+    st.markdown("## Wetgeving Assistent")
     st.markdown("---")
 
     pagina = st.radio(
         "Navigatie",
-        ["🏠 Assistent", "ℹ️ Architectuur"],
+        ["Assistent", "Architectuur"],
         label_visibility="collapsed",
     )
 
     st.markdown("---")
 
-    st.subheader("🔑 HuggingFace Token")
-    if _DEFAULT_TOKEN:
-        st.success("Token geconfigureerd via secrets.")
-        hf_token = _DEFAULT_TOKEN
-    else:
-        st.markdown(
-            "Haal een gratis token op via "
-            "[huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)."
-        )
-        hf_token = st.text_input(
-            "HF Token (optioneel)",
-            type="password",
-            placeholder="hf_...",
-            help="Vereist voor AI-antwoorden. Zonder token worden alleen de wetsartikelen getoond.",
-        )
-
-    st.markdown("---")
-    st.subheader("📊 Status")
     if st.session_state.pipeline and st.session_state.pipeline.aantal_chunks > 0:
-        st.metric("Geïndexeerde chunks", st.session_state.pipeline.aantal_chunks)
+        st.markdown(f"**{st.session_state.pipeline.aantal_chunks}** chunks geïndexeerd")
         if st.session_state.geladen_wetten:
-            st.markdown("**Geladen wetten:**")
+            st.markdown("**Geladen wetten**")
             for wet in st.session_state.geladen_wetten:
                 st.markdown(f"- {wet}")
-    else:
-        st.info("Nog geen wetten geladen.")
-
-    st.markdown("---")
-    if st.button("🗑️ Index wissen", type="secondary", use_container_width=True):
-        if st.session_state.pipeline:
+        st.markdown("---")
+        if st.button("Index wissen", type="secondary", use_container_width=True):
             st.session_state.pipeline.wis_index()
             st.session_state.geladen_wetten = []
             st.session_state.chat_history = []
-            st.success("Index gewist!")
             st.rerun()
+    else:
+        st.markdown("Geen wetten geladen.")
 
 
-# ─────────────────────────────────────────────
-# Pagina: Assistent
-# ─────────────────────────────────────────────
-if pagina == "🏠 Assistent":
-    st.title("⚖️ Nederlandse Wetgeving Assistent")
+# ─── Pagina: Assistent ─────────────────────────────────────────────────────
+if pagina == "Assistent":
+    st.markdown("## Nederlandse Wetgeving Assistent")
     st.markdown(
-        "Laad één of meer wetten en stel daarna vragen. "
-        "De app zoekt de relevante artikelen op en genereert een antwoord."
+        "Laad een of meer wetten en stel vervolgens vragen. "
+        "De assistent zoekt de relevante artikelen op en genereert een antwoord."
     )
+    st.markdown("---")
 
-    # Sectie: Wetgeving laden
-    with st.container(border=True):
-        st.subheader("📚 Wetgeving laden")
+    # Wetgeving laden
+    st.markdown("### Wetgeving laden")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        geselecteerde_wetten = st.multiselect(
+            "Selecteer wetten",
+            options=list(BEKENDE_WETTEN.keys()),
+            placeholder="Kies een of meer wetten...",
+            label_visibility="collapsed",
+        )
+    with col2:
+        handmatig_bwbr = st.text_input(
+            "BWB ID",
+            placeholder="bijv. BWBR0001840",
+            label_visibility="collapsed",
+        )
 
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            geselecteerde_wetten = st.multiselect(
-                "Selecteer wetten",
-                options=list(BEKENDE_WETTEN.keys()),
-                placeholder="Kies één of meer wetten...",
-            )
-        with col2:
-            handmatig_bwbr = st.text_input(
-                "Of voer een BWB ID in",
-                placeholder="bijv. BWBR0001840",
-            )
+    if st.button("Laden en indexeren", type="primary"):
+        te_laden = [BEKENDE_WETTEN[w] for w in geselecteerde_wetten]
+        if handmatig_bwbr.strip():
+            te_laden.append(handmatig_bwbr.strip())
 
-        laad_knop = st.button("⬇️ Laden en indexeren", type="primary", use_container_width=True)
+        if not te_laden:
+            st.warning("Selecteer een wet of voer een BWB ID in.")
+        else:
+            pipeline = laad_pipeline()
+            scraper = WettenScraper(delay=0.5)
+            alle_chunks = []
+            voortgang = st.progress(0)
 
-        if laad_knop:
-            te_laden = [BEKENDE_WETTEN[w] for w in geselecteerde_wetten]
-            if handmatig_bwbr.strip():
-                te_laden.append(handmatig_bwbr.strip())
+            for i, bwbr_id in enumerate(te_laden):
+                voortgang.progress(i / len(te_laden))
+                wet = scraper.haal_wet_op_bwbr(bwbr_id)
+                if wet:
+                    alle_chunks.extend(plat_maken([wet]))
+                    if wet["titel"] not in st.session_state.geladen_wetten:
+                        st.session_state.geladen_wetten.append(wet["titel"])
+                    st.success(f"{wet['titel']} — {len(wet['artikelen'])} artikelen opgehaald")
+                else:
+                    st.error(f"Kon {bwbr_id} niet ophalen")
 
-            if not te_laden:
-                st.warning("Selecteer eerst een wet of voer een BWB ID in.")
-            else:
-                pipeline = laad_pipeline(hf_token)
-                scraper = WettenScraper(delay=0.5)
-                alle_chunks = []
-                voortgang_bar = st.progress(0)
+            if alle_chunks:
+                voortgang.progress(0.9)
+                pipeline.voeg_chunks_toe(alle_chunks)
+                voortgang.progress(1.0)
+                st.rerun()
 
-                for i, bwbr_id in enumerate(te_laden):
-                    voortgang_bar.progress(i / len(te_laden))
-                    wet = scraper.haal_wet_op_bwbr(bwbr_id)
-                    if wet:
-                        chunks = plat_maken([wet])
-                        alle_chunks.extend(chunks)
-                        if wet["titel"] not in st.session_state.geladen_wetten:
-                            st.session_state.geladen_wetten.append(wet["titel"])
-                        st.success(f"✅ {wet['titel']} — {len(wet['artikelen'])} artikelen")
-                    else:
-                        st.error(f"❌ Kon {bwbr_id} niet ophalen")
+    st.markdown("---")
 
-                if alle_chunks:
-                    voortgang_bar.progress(0.9)
-                    pipeline.voeg_chunks_toe(alle_chunks)
-                    voortgang_bar.progress(1.0)
-                    st.success(f"Geïndexeerd: {pipeline.aantal_chunks} chunks totaal.")
-                    st.rerun()
+    # Chat
+    st.markdown("### Vragen stellen")
 
-    # Sectie: Chat
-    st.subheader("💬 Stel een vraag")
-
-    pipeline = laad_pipeline(hf_token)
+    pipeline = laad_pipeline()
 
     if pipeline.aantal_chunks == 0:
         st.info("Laad eerst een of meer wetten hierboven.")
@@ -167,10 +132,8 @@ if pagina == "🏠 Assistent":
 
         if vraag_input:
             st.session_state.chat_history.append({"rol": "gebruiker", "inhoud": vraag_input})
-
             with st.spinner("Antwoord genereren..."):
                 resultaat = pipeline.stel_vraag(vraag_input)
-
             st.session_state.chat_history.append({
                 "rol": "assistent",
                 "inhoud": resultaat["antwoord"],
@@ -185,7 +148,7 @@ if pagina == "🏠 Assistent":
                 with st.chat_message("assistant"):
                     st.markdown(bericht["inhoud"])
                     if bericht.get("bronnen"):
-                        with st.expander(f"📖 Bronnen ({len(bericht['bronnen'])} artikelen)"):
+                        with st.expander(f"Bronnen ({len(bericht['bronnen'])} artikelen)"):
                             for bron in bericht["bronnen"]:
                                 st.markdown(
                                     f"**{bron['titel']} – {bron['artikel']}** "
@@ -197,59 +160,55 @@ if pagina == "🏠 Assistent":
                                 st.markdown("---")
 
         if st.session_state.chat_history:
-            if st.button("🗑️ Gesprek wissen", type="secondary"):
+            if st.button("Gesprek wissen", type="secondary"):
                 st.session_state.chat_history = []
                 st.rerun()
 
-# ─────────────────────────────────────────────
-# Pagina: Architectuur
-# ─────────────────────────────────────────────
-elif pagina == "ℹ️ Architectuur":
-    st.title("ℹ️ Architectuur")
+
+# ─── Pagina: Architectuur ──────────────────────────────────────────────────
+elif pagina == "Architectuur":
+    st.markdown("## Architectuur")
     st.markdown(
         "Deze applicatie gebruikt een **RAG (Retrieval-Augmented Generation)** pipeline "
         "om vragen over Nederlandse wetgeving te beantwoorden."
     )
+    st.markdown("---")
 
-    st.subheader("Hoe het werkt")
+    st.markdown("### Werking")
     st.markdown("""
-    1. **Scraper** ([scraper.py](scraper.py)) — haalt wetteksten op van
-       [wetten.overheid.nl](https://wetten.overheid.nl) via officiële BWB IDs.
-       De tekst wordt per artikel opgesplitst in chunks.
+1. **Scraper** — haalt wetteksten op van [wetten.overheid.nl](https://wetten.overheid.nl)
+   via officiële BWB IDs. De tekst wordt per artikel opgesplitst in chunks.
 
-    2. **Embeddings** ([rag_pipeline.py](rag_pipeline.py)) — elk chunk wordt omgezet naar
-       een vector met het model `paraphrase-multilingual-MiniLM-L12-v2` van
-       sentence-transformers (~50 MB, meertalig, draait lokaal).
+2. **Embeddings** — elk chunk wordt omgezet naar een vector met het model
+   `paraphrase-multilingual-MiniLM-L12-v2` (sentence-transformers, ~50 MB, meertalig, lokaal).
 
-    3. **Vector store** — de vectors worden opgeslagen in een FAISS index
-       (`IndexFlatIP` met genormaliseerde embeddings = cosine similarity).
-       De index wordt lokaal opgeslagen in `data/`.
+3. **Vector store** — de vectors worden opgeslagen in een FAISS index
+   (`IndexFlatIP` met genormaliseerde embeddings = cosine similarity).
 
-    4. **Retrieval** — bij een vraag wordt de vraag ook geëmbed en worden de
-       *k* meest gelijkaardige artikelen opgezocht via nearest-neighbor search.
+4. **Retrieval** — bij een vraag wordt de vraag geëmbed en worden de meest relevante
+   artikelen opgezocht via nearest-neighbor search.
 
-    5. **Generatie** — de gevonden artikelen worden als context meegegeven aan
-       `HuggingFaceH4/zephyr-7b-beta` via de HuggingFace Inference API
-       (gratis tier, `provider="hf-inference"`). Het model genereert een
-       Nederlands antwoord met verwijzing naar de relevante artikelen.
+5. **Generatie** — de gevonden artikelen worden als context meegegeven aan
+   `zephyr-7b-beta` via de HuggingFace Inference API. Het model genereert een
+   Nederlands antwoord met verwijzing naar de relevante artikelen.
     """)
 
-    st.subheader("Componentenoverzicht")
+    st.markdown("### Componentenoverzicht")
     st.markdown("""
-    | Component | Technologie |
-    |---|---|
-    | Embeddings | `paraphrase-multilingual-MiniLM-L12-v2` (sentence-transformers) |
-    | Vector store | FAISS `IndexFlatIP` |
-    | Similarity | Cosine (via genormaliseerde embeddings) |
-    | LLM | `zephyr-7b-beta` via HuggingFace Inference API |
-    | Chunking | Per wetsartikel, fallback per 1000 tekens |
-    | Frontend | Streamlit |
+| Component | Technologie |
+|---|---|
+| Embeddings | `paraphrase-multilingual-MiniLM-L12-v2` (sentence-transformers) |
+| Vector store | FAISS `IndexFlatIP` |
+| Similarity | Cosine (via genormaliseerde embeddings) |
+| LLM | `zephyr-7b-beta` via HuggingFace Inference API |
+| Chunking | Per wetsartikel, fallback per 1000 tekens |
+| Frontend | Streamlit |
     """)
 
-    st.subheader("Diagram")
+    st.markdown("### Diagram")
     st.code("""
 ┌─────────────────────────────────────┐
-│           Streamlit UI (app.py)     │
+│         Streamlit UI (app.py)       │
 └──────────┬──────────────────────────┘
            │
     ┌──────┴──────────────────────┐
@@ -262,11 +221,11 @@ elif pagina == "ℹ️ Architectuur":
                       └──────────────────────────┘
     """, language=None)
 
-    st.subheader("Beperkingen")
+    st.markdown("### Beperkingen")
     st.markdown("""
-    - De FAISS index wordt **niet persistent opgeslagen** op Streamlit Community Cloud —
-      gebruikers moeten wetten laden bij elk nieuw sessie.
-    - De gratis HuggingFace Inference API heeft **rate limits** bij intensief gebruik.
-    - Wetteksten worden **niet automatisch bijgewerkt** — wis de index en herlaad
-      voor de meest actuele versie.
+- De FAISS index wordt niet persistent opgeslagen op Streamlit Community Cloud.
+  Gebruikers moeten wetten laden bij elke nieuwe sessie.
+- De gratis HuggingFace Inference API heeft rate limits bij intensief gebruik.
+- Wetteksten worden niet automatisch bijgewerkt. Wis de index en herlaad
+  voor de meest actuele versie.
     """)
