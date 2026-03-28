@@ -144,26 +144,28 @@ class LLMJudge:
         trouw, volledigheid, helderheid, relevantie (each int 1-5 or None).
         """
         context_str = "\n---\n".join(
-            chunk.get("tekst", "")[:400]
+            chunk.get("tekst", "")[:800]
             for chunk, _ in context_chunks[:5]
         )
 
         prompt = (
-            "Beoordeel het antwoord op de volgende vier criteria. "
-            "Geef een score van 1 tot 5 voor elk criterium.\n\n"
+            "Je bent een objectieve beoordelaar van juridische antwoorden. "
+            "Beoordeel het gegeven antwoord op vier criteria. "
+            "Parafrasering of samenvatting van de wettekst telt als trouw aan de bron. "
+            "Geef alleen een lagere score als het antwoord feitelijk onjuiste of verzonnen informatie bevat.\n\n"
             f"VRAAG: {vraag}\n\n"
             f"OPGEHAALDE WETTEKSTEN:\n{context_str}\n\n"
             f"GEGEVEN ANTWOORD: {antwoord}\n\n"
             f"VERWACHT ANTWOORD: {verwacht_antwoord}\n\n"
-            "Criteria:\n"
-            "- trouw: bevat het antwoord alleen beweringen die in de opgehaalde wetteksten staan? "
-            "(1=veel hallucinaties, 5=volledig trouw aan de bronnen)\n"
+            "Criteria (score 1-5):\n"
+            "- trouw: bevat het antwoord uitsluitend informatie die aantoonbaar uit de wetteksten komt? "
+            "Parafrasering is toegestaan. Score 5 als er geen verzonnen informatie is, score 1 bij veel hallucinaties.\n"
             "- volledigheid: dekt het antwoord de kernpunten van het verwachte antwoord? "
-            "(1=onvolledig, 5=volledig)\n"
-            "- helderheid: is het antwoord duidelijk en goed gestructureerd? "
-            "(1=onduidelijk, 5=zeer helder)\n"
-            "- relevantie: beantwoordt het antwoord de gestelde vraag? "
-            "(1=irrelevant, 5=volledig relevant)\n\n"
+            "Score 5 als alle kernpunten aanwezig zijn, score 1 als vrijwel niets klopt.\n"
+            "- helderheid: is het antwoord begrijpelijk en goed gestructureerd? "
+            "Score 5 voor een helder antwoord, score 1 voor verwarrend of onleesbaar.\n"
+            "- relevantie: beantwoordt het antwoord de gestelde vraag direct? "
+            "Score 5 als de vraag volledig beantwoord is, score 1 als het antwoord de vraag negeert.\n\n"
             "Geef ALLEEN een JSON-object terug, geen uitleg:\n"
             '{"trouw": <1-5>, "volledigheid": <1-5>, "helderheid": <1-5>, "relevantie": <1-5>}'
         )

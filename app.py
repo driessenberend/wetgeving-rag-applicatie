@@ -30,6 +30,10 @@ if "eval_summary" not in st.session_state:
     st.session_state.eval_summary = None
 if "eval_summary_prev" not in st.session_state:
     st.session_state.eval_summary_prev = None
+if "eval_judge_model" not in st.session_state:
+    st.session_state.eval_judge_model = None
+if "eval_judge_model_prev" not in st.session_state:
+    st.session_state.eval_judge_model_prev = None
 if "eval_llm_model" not in st.session_state:
     st.session_state.eval_llm_model = "Qwen/Qwen2.5-7B-Instruct"
 if "eval_embedding_model" not in st.session_state:
@@ -253,6 +257,7 @@ elif pagina == "Evaluatie":
             if st.session_state.eval_results:
                 st.session_state.eval_results_prev = st.session_state.eval_results
                 st.session_state.eval_summary_prev = st.session_state.eval_summary
+                st.session_state.eval_judge_model_prev = st.session_state.eval_judge_model
 
             test_cases = load_test_cases("test_cases.json")
             evaluator = Evaluator(
@@ -278,6 +283,7 @@ elif pagina == "Evaluatie":
 
             st.session_state.eval_results = results
             st.session_state.eval_summary = evaluator.compute_summary(results)
+            st.session_state.eval_judge_model = st.session_state.eval_llm_model
             voortgang_bar.progress(1.0)
             status.empty()
             st.rerun()
@@ -288,6 +294,9 @@ elif pagina == "Evaluatie":
         prev_summary = st.session_state.eval_summary_prev
 
         st.markdown("### Resultaten")
+
+        if st.session_state.eval_judge_model:
+            st.caption(f"Scores gegeven door: `{st.session_state.eval_judge_model}`")
 
         # Metric cards
         col_names = ["Correctheid", "Trouw", "Volledigheid", "Helderheid", "Relevantie"]
@@ -405,6 +414,13 @@ elif pagina == "Evaluatie":
         if st.session_state.eval_results_prev and st.session_state.eval_summary_prev:
             st.markdown("---")
             st.markdown("### Vergelijking met vorige run")
+            prev_judge = st.session_state.eval_judge_model_prev
+            curr_judge = st.session_state.eval_judge_model
+            if prev_judge or curr_judge:
+                st.caption(
+                    f"Vorige run: `{prev_judge or 'onbekend'}` — "
+                    f"Huidige run: `{curr_judge or 'onbekend'}`"
+                )
             prev = st.session_state.eval_summary_prev
             curr = summary
             comp_rows = []
